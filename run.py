@@ -49,18 +49,31 @@ class Block:
                 return False
         return True
 
-
 class Blockchain:
     def __init__(self):
         self.chain = [Block([], None)]
         self.difficulty = 2
+        self.transaction_pool = []
 
-    def add_block(self, transactions, reward):
-        previous_hash = self.chain[-1].hash
+    def add_transaction_to_pool(self, transaction):
+        self.transaction_pool.append(transaction)
+
+    def add_transactions_to_pool(self, transactions):
+        for transaction in transactions:
+            self.transaction_pool.append(transaction)
+
+    def process_transaction_pool(self, reward):
+        transactions = self.transaction_pool.copy()
+        self.transaction_pool.clear()
 
         # Create a new transaction for the reward
         reward_tx = Transaction("coinbase", reward, reward, timestamp=datetime.datetime.now())
         transactions.append(reward_tx)
+
+        self.add_block(transactions)
+
+    def add_block(self, transactions):
+        previous_hash = self.chain[-1].hash
 
         new_block = Block(transactions, previous_hash)
         new_block.mine_block(self.difficulty)
@@ -90,21 +103,30 @@ class Blockchain:
 
         return True
 
+
 if __name__ == "__main__":
     blockchain = Blockchain()
 
     # Set the reward amount
     reward = 1
 
-    # create some transactions with fees
+    # create some transactions with fees and add them to the transaction pool
     tx1 = Transaction("Alice", "Bob", 10, 0.1)
     tx2 = Transaction("Bob", "Charlie", 5, 0.05)
     tx3 = Transaction("Charlie", "Alice", 3, 0.03)
+    blockchain.add_transactions_to_pool([tx1, tx2, tx3])
 
-    # add the transactions to a block and add the block to the blockchain with reward
-    transactions = [tx1, tx2, tx3]
-    blockchain.add_block(transactions, reward)
+    # add more transactions to the pool
+    tx4 = Transaction("David", "Eva", 2, 0.02)
+    tx5 = Transaction("Eva", "Frank", 7, 0.07)
+    blockchain.add_transaction_to_pool(tx4)
+    blockchain.add_transaction_to_pool(tx5)
 
+    # process the transaction pool to create a new block
+    blockchain.process_transaction_pool(reward)
+
+    # print the blockchain
     blockchain.print_chain()
 
+    # check if the blockchain is valid
     print(blockchain.is_valid())
