@@ -3,12 +3,13 @@ import datetime
 import uuid
 
 class Transaction:
-    def __init__(self, sender, receiver, amount, fee=0):
+    def __init__(self, sender, receiver, amount, fee=0, timestamp=None):
         self.id = str(uuid.uuid4())
         self.sender = sender
         self.receiver = receiver
         self.amount = amount
         self.fee = fee
+        self.timestamp = timestamp if timestamp else datetime.datetime.now()
 
     def is_valid(self):
         if self.amount <= 0:
@@ -54,8 +55,13 @@ class Blockchain:
         self.chain = [Block([], None)]
         self.difficulty = 2
 
-    def add_block(self, transactions):
+    def add_block(self, transactions, reward):
         previous_hash = self.chain[-1].hash
+
+        # Create a new transaction for the reward
+        reward_tx = Transaction("coinbase", reward, reward, timestamp=datetime.datetime.now())
+        transactions.append(reward_tx)
+
         new_block = Block(transactions, previous_hash)
         new_block.mine_block(self.difficulty)
         self.chain.append(new_block)
@@ -84,30 +90,21 @@ class Blockchain:
 
         return True
 
-
 if __name__ == "__main__":
     blockchain = Blockchain()
+
+    # Set the reward amount
+    reward = 1
 
     # create some transactions with fees
     tx1 = Transaction("Alice", "Bob", 10, 0.1)
     tx2 = Transaction("Bob", "Charlie", 5, 0.05)
     tx3 = Transaction("Charlie", "Alice", 3, 0.03)
 
-    # add the transactions to a block and add the block to the blockchain
-    blockchain.add_block([tx1, tx2, tx3])
+    # add the transactions to a block and add the block to the blockchain with reward
+    transactions = [tx1, tx2, tx3]
+    blockchain.add_block(transactions, reward)
 
-    # print the blockchain to verify it was updated correctly
     blockchain.print_chain()
 
-    # verify the blockchain is valid
-    print("Blockchain is valid: ", blockchain.is_valid())
-
-    # create an invalid transaction and add it to a block
-    invalid_tx = Transaction("Eve", "Mallory", -100, 0.1)
-    blockchain.add_block([invalid_tx])
-
-    # print the blockchain to verify the invalid block was added
-    blockchain.print_chain()
-
-    # verify the blockchain is invalid
-    print("Blockchain is valid: ", blockchain.is_valid())
+    print(blockchain.is_valid())
