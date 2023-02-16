@@ -3,15 +3,19 @@ import datetime
 import uuid
 
 class Transaction:
-    def __init__(self, sender, recipient, amount, fee, transaction_type=None):
+    def __init__(self, sender, recipient, amount, fee, timestamp=None, tx_id=None, smart_contract=None):
         self.sender = sender
         self.recipient = recipient
         self.amount = amount
         self.fee = fee
-        self.transaction_type = transaction_type
+        self.timestamp = timestamp if timestamp else datetime.datetime.now()
+        self.tx_id = tx_id if tx_id else uuid.uuid4().hex
+        self.smart_contract = smart_contract
 
     def __str__(self):
-        return f"Transaction(sender={self.sender}, recipient={self.recipient}, amount={self.amount}, fee={self.fee}, type={self.transaction_type})"
+        return f"Transaction(sender={self.sender}, recipient={self.recipient}, amount={self.amount}, fee={self.fee}, timestamp={self.timestamp}, tx_id={self.tx_id}, smart_contract={self.smart_contract})"
+
+
 
 class Block:
     def __init__(self, transactions, previous_hash):
